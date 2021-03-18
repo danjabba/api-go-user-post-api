@@ -1,0 +1,25 @@
+version: '3'
+services:
+  mongo:
+    container_name: mongodb
+    image: mongo
+    restart: always
+    ports:
+      - 27017:27017
+    volumes:
+      - $PWD/data/mongodb:/data/db
+    networks:
+      - apirest_network  
+  apirest:
+      depends_on:
+        - mongo
+      restart: on-failure
+      container_name: apirest
+      build: .
+      ports:
+        - "8080:8080"
+      env_file: .envrc
+      networks:
+        - apirest_network
+networks:
+  apirest_network:

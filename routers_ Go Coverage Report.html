@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<!-- saved from url=(0098)file:///private/var/folders/td/jkrwwnpd375g94w3s7l7nf8c0000gn/T/cover378335391/coverage.html#file0 -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		
+		<title>routers: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">apirest/internal/routers/post.go (48.5%)</option>
+				
+				<option value="file1">apirest/internal/routers/user.go (47.8%)</option>
+				
+				<option value="file2">apirest/tools/db.go (53.8%)</option>
+				
+				<option value="file3">apirest/tools/post.go (0.0%)</option>
+				
+				<option value="file4">apirest/tools/user.go (9.8%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: block;">package routers
+
+import (
+        models "apirest/internal/models"
+        tools "apirest/tools"
+        "encoding/json"
+        "net/http"
+)
+
+func CreatePost(w http.ResponseWriter, r *http.Request) error <span class="cov8" title="1">{
+
+        var post models.Post
+
+        err := json.NewDecoder(r.Body).Decode(&amp;post)
+
+        if err != nil </span><span class="cov0" title="0">{
+
+                http.Error(w, "Error"+err.Error(), 400)
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if len(post.Body) == 0 </span><span class="cov8" title="1">{
+                http.Error(w, "the body is required", 400)
+                return err
+        }</span>
+
+        <span class="cov8" title="1">_, find, _ := tools.CheckPostAlreadyExist(post.Slug)
+        if find == true </span><span class="cov8" title="1">{
+                http.Error(w, "post already exist", 400)
+                return err
+        }</span>
+
+        <span class="cov0" title="0">_, status, err := tools.InsertPost(post)
+
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, "error inserting new post"+err.Error(), 400)
+                return err
+        }</span>
+
+        <span class="cov0" title="0">if status == false </span><span class="cov0" title="0">{
+                http.Error(w, "error inserting", 400)
+                return err
+
+        }</span>
+
+        <span class="cov0" title="0">json.NewEncoder(w).Encode(&amp;post)
+        w.WriteHeader(http.StatusCreated)
+        return nil</span>
+}
+
+func GetPosts(w http.ResponseWriter, r *http.Request) error <span class="cov8" title="1">{
+
+        result, status := tools.GetAllPosts()
+        if status == false </span><span class="cov0" title="0">{
+                http.Error(w, "eror geting posts", http.StatusBadRequest)
+                return nil
+        }</span>
+        <span class="cov8" title="1">w.Header().Set("content-type", "application/json")
+        w.WriteHeader(http.StatusAccepted)
+        json.NewEncoder(w).Encode(&amp;result)
+        return nil</span>
+}
+
+func GetOnePost(w http.ResponseWriter, r *http.Request) error <span class="cov8" title="1">{
+
+        ID := r.URL.Query().Get("id")
+
+        if len(ID) &lt; 1 </span><span class="cov8" title="1">{
+                http.Error(w, "could send the id parameter", http.StatusBadRequest)
+                return nil
+        }</span>
+        <span class="cov8" title="1">post, err := tools.GetPost(ID)
+
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, "error"+err.Error(), 400)
+                return err
+
+        }</span>
+
+        <span class="cov8" title="1">w.Header().Set("content-type", "application/json")
+        w.WriteHeader(http.StatusOK)
+        json.NewEncoder(w).Encode(post)
+        return nil</span>
+}
+
+func UpdateOnePost(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        var post models.Post
+        var ID string
+
+        err := json.NewDecoder(r.Body).Decode(&amp;post)
+
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, "data incorrect"+err.Error(), 400)
+                return
+        }</span>
+        <span class="cov0" title="0">var status bool
+        status, err = tools.UpdatePost(post, ID)
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, "error Updating post"+err.Error(), 400)
+                return
+        }</span>
+
+        <span class="cov0" title="0">if status == false </span><span class="cov0" title="0">{
+                http.Error(w, "error Updating the post"+err.Error(), 400)
+                return
+        }</span>
+
+        <span class="cov0" title="0">w.WriteHeader(http.StatusCreated)</span>
+
+}
+
+func DeleteOnePost(w http.ResponseWriter, r *http.Request) error <span class="cov8" title="1">{
+
+        ID := r.URL.Query().Get("id")
+        if len(ID) &lt; 1 </span><span class="cov0" title="0">{
+                http.Error(w, "could send id parameter", http.StatusBadRequest)
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">err := tools.DeletePost(ID)
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, "error", http.StatusBadRequest)
+                return err
+        }</span>
+
+        <span class="cov8" title="1">w.Header().Set("content-type", "application/json")
+        w.WriteHeader(http.StatusOK)
+        return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package routers
+
+import (
+        models "apirest/internal/models"
+        tools "apirest/tools"
+        "encoding/json"
+        "net/http"
+)
+
+func CreateUser(w http.ResponseWriter, r *http.Request) error <span class="cov8" title="1">{
+
+        var user models.User
+
+        err := json.NewDecoder(r.Body).Decode(&amp;user)
+
+        if err != nil </span><span class="cov0" title="0">{
+
+                http.Error(w, "Error"+err.Error(), 400)
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if len(user.Email) == 0 </span><span class="cov8" title="1">{
+                http.Error(w, "the email is required", 400)
+                return err
+        }</span>
+
+        <span class="cov8" title="1">_, find, _ := tools.CheckUserAlreadyExist(user.Email)
+        if find == true </span><span class="cov8" title="1">{
+                http.Error(w, "user already exist", 400)
+                return err
+        }</span>
+
+        <span class="cov0" title="0">_, status, err := tools.InsertUser(user)
+
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, "error inserting new user"+err.Error(), 400)
+                return err
+        }</span>
+
+        <span class="cov0" title="0">if status == false </span><span class="cov0" title="0">{
+                http.Error(w, "error inserting", 400)
+                return err
+
+        }</span>
+
+        <span class="cov0" title="0">json.NewEncoder(w).Encode(&amp;user)
+        w.WriteHeader(http.StatusCreated)
+
+        return nil</span>
+}
+
+func GetUsers(w http.ResponseWriter, r *http.Request) error <span class="cov8" title="1">{
+
+        result, status := tools.GetAllUsers()
+        if status == false </span><span class="cov0" title="0">{
+                http.Error(w, "eror geting users", http.StatusBadRequest)
+                return nil
+        }</span>
+        <span class="cov8" title="1">w.Header().Set("content-type", "application/json")
+        w.WriteHeader(http.StatusAccepted)
+        json.NewEncoder(w).Encode(&amp;result)
+
+        return nil</span>
+}
+
+func GetOneUser(w http.ResponseWriter, r *http.Request) error <span class="cov8" title="1">{
+
+        ID := r.URL.Query().Get("id")
+
+        if len(ID) &lt; 1 </span><span class="cov8" title="1">{
+                http.Error(w, "could send the id parameter", http.StatusBadRequest)
+                return nil
+        }</span>
+        <span class="cov8" title="1">user, err := tools.GetUser(ID)
+
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, "error"+err.Error(), 400)
+                return err
+
+        }</span>
+
+        <span class="cov8" title="1">w.Header().Set("content-type", "application/json")
+        w.WriteHeader(http.StatusOK)
+        json.NewEncoder(w).Encode(user)
+        return nil</span>
+}
+
+func UpdateOneUser(w http.ResponseWriter, r *http.Request) error <span class="cov0" title="0">{
+        var user models.User
+        var ID string
+
+        err := json.NewDecoder(r.Body).Decode(&amp;user)
+
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, "data incorrect"+err.Error(), 400)
+                return err
+        }</span>
+        <span class="cov0" title="0">var status bool
+        status, err = tools.UpdateUser(user, ID)
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, "error Updating user"+err.Error(), 400)
+                return err
+        }</span>
+
+        <span class="cov0" title="0">if status == false </span><span class="cov0" title="0">{
+                http.Error(w, "error Updating the user"+err.Error(), 400)
+                return nil
+        }</span>
+
+        <span class="cov0" title="0">w.WriteHeader(http.StatusAccepted)
+        return nil</span>
+
+}
+
+func DeleteOneUser(w http.ResponseWriter, r *http.Request) error <span class="cov8" title="1">{
+
+        ID := r.URL.Query().Get("id")
+        if len(ID) &lt; 1 </span><span class="cov0" title="0">{
+                http.Error(w, "could send id parameter", http.StatusBadRequest)
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">err := tools.DeleteUser(ID)
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, "error", http.StatusBadRequest)
+                return err
+        }</span>
+
+        <span class="cov8" title="1">w.Header().Set("content-type", "application/json")
+        w.WriteHeader(http.StatusOK)
+        return err</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package tools
+
+import (
+        "context"
+        "log"
+
+        "go.mongodb.org/mongo-driver/mongo"
+        "go.mongodb.org/mongo-driver/mongo/options"
+)
+
+// var (
+//         usr      = "daniel"
+//         pwd      = "123456"
+//         host     = "localhost"
+//         port     = 27017
+//         database = "apirest"
+// )
+
+const (
+        MongoDBName = "apirest"
+)
+
+var MongoConn = MongoClient()
+
+func MongoClient() *mongo.Client <span class="cov8" title="1">{
+
+        opt := options.Client().ApplyURI("mongodb://localhost:27017")
+        client, err := mongo.Connect(context.TODO(), opt)
+
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal(err.Error())
+        }</span>
+
+        <span class="cov8" title="1">err = client.Ping(context.TODO(), nil)
+
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal(err.Error())
+        }</span>
+
+        <span class="cov8" title="1">log.Println("conection successfully")
+        return client</span>
+}
+
+func CheckConection() bool <span class="cov0" title="0">{
+        err := MongoConn.Ping(context.TODO(), nil)
+
+        if err != nil </span><span class="cov0" title="0">{
+
+                return false
+        }</span>
+
+        <span class="cov0" title="0">return true</span>
+}
+
+// func GetCollection(collection string) *mongo.Collection {
+
+//         uri := fmt.Sprintf("mongodb://%s:%s@%s:%d", usr, pwd, host, port)
+
+//         client, err := mongo.NewClient(options.Client().ApplyURI(uri))
+
+//         if err != nil {
+//                 panic(err.Error())
+//         }
+
+//         ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+//         err = client.Connect(ctx)
+
+//         if err != nil {
+//                 panic(err.Error())
+//         }
+
+//         return client.Database(database).Collection(collection)
+// }
+
+// // init ...
+// func init() {
+
+//         once.Do(func() {
+//                 _, err := connect()
+//                 if err != nil {
+//                         log.Fatalln(err)
+//                 }
+
+//                 fmt.Println("[INFO][Database connection successfully!]")
+
+//         })
+
+// }
+
+// // GetConnection ...
+// func GetConnection() *mongo.Client {
+//         return db
+// }
+
+// // Function to conect mongoDB ...
+// func connect() (*mongo.Client, error) {
+
+//         host := "localhost"
+//         port := 27017
+
+//         clientOpts := options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%d", host, port))
+//         client, err := mongo.Connect(context.TODO(), clientOpts)
+//         if err != nil {
+//                 log.Fatal(err)
+//                 return nil, err
+//         }
+
+//         // Check the connections
+//         err = client.Ping(context.TODO(), nil)
+//         if err != nil {
+//                 log.Fatal(err)
+//                 return nil, err
+//         }
+
+//         return client, nil
+// }
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package tools
+
+import (
+        model "apirest/internal/models"
+        "context"
+        "fmt"
+        "time"
+
+        "go.mongodb.org/mongo-driver/bson"
+        "go.mongodb.org/mongo-driver/bson/primitive"
+        "go.mongodb.org/mongo-driver/mongo/options"
+)
+
+func InsertPost(u model.Post) (string, bool, error) <span class="cov0" title="0">{
+
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+        defer cancel()
+
+        db := MongoConn.Database("apirest")
+        col := db.Collection("posts")
+
+        result, err := col.InsertOne(ctx, u)
+
+        if err != nil </span><span class="cov0" title="0">{
+                return "", false, err
+        }</span>
+
+        <span class="cov0" title="0">objID, _ := result.InsertedID.(primitive.ObjectID)
+
+        return objID.String(), true, nil</span>
+}
+
+func CheckPostAlreadyExist(slug string) (model.Post, bool, string) <span class="cov0" title="0">{
+
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+        defer cancel()
+
+        db := MongoConn.Database("apirest")
+        col := db.Collection("posts")
+
+        condition := bson.M{"slug": slug}
+
+        var result model.Post
+
+        err := col.FindOne(ctx, condition).Decode(&amp;result)
+        ID := result.ID.Hex()
+
+        if err != nil </span><span class="cov0" title="0">{
+                return result, false, ID
+
+        }</span>
+
+        <span class="cov0" title="0">return result, true, ID</span>
+
+}
+
+func GetAllPosts() ([]*model.Post, bool) <span class="cov0" title="0">{
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+        defer cancel()
+
+        db := MongoConn.Database("apirest")
+        col := db.Collection("posts")
+
+        var result []*model.Post
+
+        findOptions := options.Find()
+
+        findOptions.SetLimit(20)
+
+        cur, err := col.Find(ctx, findOptions)
+
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err.Error())
+                return result, false
+        }</span>
+
+        <span class="cov0" title="0">for cur.Next(ctx) </span><span class="cov0" title="0">{
+                var s model.Post
+                err := cur.Decode(&amp;s)
+
+                if err != nil </span><span class="cov0" title="0">{
+                        fmt.Println(err.Error())
+                        return result, false
+                }</span>
+
+                <span class="cov0" title="0">result = append(result, &amp;s)</span>
+
+        }
+        <span class="cov0" title="0">err = cur.Err()
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err.Error())
+                return result, false
+        }</span>
+
+        <span class="cov0" title="0">cur.Close(ctx)
+
+        return result, true</span>
+}
+
+func GetPost(ID string) (model.Post, error) <span class="cov0" title="0">{
+
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        defer cancel()
+
+        db := MongoConn.Database("apirest")
+        col := db.Collection("posts")
+
+        var post model.Post
+
+        objID, _ := primitive.ObjectIDFromHex(ID)
+
+        condition := bson.M{
+                "_id": objID,
+        }
+
+        err := col.FindOne(ctx, condition).Decode(&amp;post)
+
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Println("post not found" + err.Error())
+                return post, err
+        }</span>
+
+        <span class="cov0" title="0">return post, nil</span>
+
+}
+
+func UpdatePost(u model.Post, ID string) (bool, error) <span class="cov0" title="0">{
+
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        defer cancel()
+
+        db := MongoConn.Database("apirest")
+        col := db.Collection("posts")
+
+        post := make(map[string]interface{})
+
+        if len(u.Body) &gt; 0 </span><span class="cov0" title="0">{
+                post["body"] = u.Body
+        }</span>
+
+        <span class="cov0" title="0">if len(u.Slug) &gt; 0 </span><span class="cov0" title="0">{
+                post["slug"] = u.Slug
+        }</span>
+
+        <span class="cov0" title="0">updtString := bson.M{
+                "$set": post,
+        }
+
+        objID, _ := primitive.ObjectIDFromHex(ID)
+
+        filter := bson.M{"_id": bson.M{"$eq": objID}}
+
+        _, err := col.UpdateOne(ctx, filter, updtString)
+
+        if err != nil </span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+        <span class="cov0" title="0">return true, nil</span>
+
+}
+
+func DeletePost(ID string) error <span class="cov0" title="0">{
+
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        defer cancel()
+
+        db := MongoConn.Database("apirest")
+        col := db.Collection("posts")
+
+        objID, _ := primitive.ObjectIDFromHex(ID)
+
+        condition := bson.M{
+                "_id": objID,
+        }
+
+        _, err := col.DeleteOne(ctx, condition)
+        return err
+
+}</span>
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package tools
+
+import (
+        model "apirest/internal/models"
+        "context"
+        "fmt"
+        "time"
+
+        "go.mongodb.org/mongo-driver/bson"
+        "go.mongodb.org/mongo-driver/bson/primitive"
+        "go.mongodb.org/mongo-driver/mongo/options"
+)
+
+func InsertUser(u model.User) (string, bool, error) <span class="cov8" title="1">{
+
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+        defer cancel()
+
+        db := MongoConn.Database("apirest")
+        col := db.Collection("users")
+
+        result, err := col.InsertOne(ctx, u)
+
+        if err != nil </span><span class="cov0" title="0">{
+                return "", false, err
+        }</span>
+
+        <span class="cov8" title="1">objID, _ := result.InsertedID.(primitive.ObjectID)
+
+        return objID.String(), true, nil</span>
+}
+
+func CheckUserAlreadyExist(email string) (model.User, bool, string) <span class="cov0" title="0">{
+
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+        defer cancel()
+
+        db := MongoConn.Database("apirest")
+        col := db.Collection("users")
+
+        condition := bson.M{"email": email}
+
+        var result model.User
+
+        err := col.FindOne(ctx, condition).Decode(&amp;result)
+        ID := result.ID.Hex()
+
+        if err != nil </span><span class="cov0" title="0">{
+                return result, false, ID
+
+        }</span>
+
+        <span class="cov0" title="0">return result, true, ID</span>
+
+}
+
+func GetAllUsers() ([]*model.User, bool) <span class="cov0" title="0">{
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+        defer cancel()
+
+        db := MongoConn.Database("apirest")
+        col := db.Collection("users")
+
+        var result []*model.User
+
+        findOptions := options.Find()
+
+        findOptions.SetLimit(20)
+
+        cur, err := col.Find(ctx, findOptions)
+
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err.Error())
+                return result, false
+        }</span>
+
+        <span class="cov0" title="0">for cur.Next(ctx) </span><span class="cov0" title="0">{
+                var s model.User
+                err := cur.Decode(&amp;s)
+
+                if err != nil </span><span class="cov0" title="0">{
+                        fmt.Println(err.Error())
+                        return result, false
+                }</span>
+
+                <span class="cov0" title="0">result = append(result, &amp;s)</span>
+
+        }
+        <span class="cov0" title="0">err = cur.Err()
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err.Error())
+                return result, false
+        }</span>
+
+        <span class="cov0" title="0">cur.Close(ctx)
+
+        return result, true</span>
+}
+
+func GetUser(ID string) (model.User, error) <span class="cov0" title="0">{
+
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        defer cancel()
+
+        db := MongoConn.Database("apirest")
+        col := db.Collection("users")
+
+        var user model.User
+
+        objID, _ := primitive.ObjectIDFromHex(ID)
+
+        condition := bson.M{
+                "_id": objID,
+        }
+
+        err := col.FindOne(ctx, condition).Decode(&amp;user)
+
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Println("user not found" + err.Error())
+                return user, err
+        }</span>
+
+        <span class="cov0" title="0">return user, nil</span>
+
+}
+
+func UpdateUser(u model.User, ID string) (bool, error) <span class="cov0" title="0">{
+
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        defer cancel()
+
+        db := MongoConn.Database("apirest")
+        col := db.Collection("users")
+
+        user := make(map[string]interface{})
+
+        if len(u.Name) &gt; 0 </span><span class="cov0" title="0">{
+                user["name"] = u.Name
+        }</span>
+
+        <span class="cov0" title="0">if len(u.LastName) &gt; 0 </span><span class="cov0" title="0">{
+                user["last_name"] = u.LastName
+        }</span>
+
+        <span class="cov0" title="0">if len(u.Email) &gt; 0 </span><span class="cov0" title="0">{
+                user["email"] = u.Email
+        }</span>
+
+        <span class="cov0" title="0">updtString := bson.M{
+                "$set": user,
+        }
+
+        objID, _ := primitive.ObjectIDFromHex(ID)
+
+        filter := bson.M{"_id": bson.M{"$eq": objID}}
+
+        _, err := col.UpdateOne(ctx, filter, updtString)
+
+        if err != nil </span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+        <span class="cov0" title="0">return true, nil</span>
+
+}
+
+func DeleteUser(ID string) error <span class="cov0" title="0">{
+
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        defer cancel()
+
+        db := MongoConn.Database("apirest")
+        col := db.Collection("users")
+
+        objID, _ := primitive.ObjectIDFromHex(ID)
+
+        condition := bson.M{
+                "_id": objID,
+        }
+
+        _, err:= col.DeleteOne(ctx,condition)
+        return err
+        
+}</span>
+</pre>
+		
+		</div>
+	
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+
+</body></html>
