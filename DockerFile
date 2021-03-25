@@ -1,26 +1,26 @@
-FROM golang:1.15-alpine As builder
+FROM golang:1.13-alpine As builder
 
-RUN mkdir -p $GOPATH/src/gitlab.com/api-go-user-post-api && apk add gcc g++ git
+RUN mkdir -p $GOPATH/src/apirest && apk add gcc g++ git
 
-WORKDIR $GOPATH/src/gitlab.com/api-go-user-post-api
+WORKDIR $GOPATH/src/apirest
 
 ENV GO111MODULE=on
 
 COPY . .
 
-WORKDIR $GOPATH/src/gitlab.com/api-go-user-post-api
+WORKDIR $GOPATH/src/apirest
 
 RUN go build ./... && go build
 
 FROM alpine
 
-RUN apk add ca-certificates bash
+RUN apk --no-cache add ca-certificates bash
 
 WORKDIR /root/
 
-COPY --from=builder /go/src/gitlab.com/api-go-user-post-api/api-go-user-post-api .
+COPY --from=builder /go/src/apirest .
 
-RUN chmod +x ./api-go-user-post-api
+RUN chmod +x ./apirest
 
 ENTRYPOINT [ "./api-go-user-post-api" ]
 
