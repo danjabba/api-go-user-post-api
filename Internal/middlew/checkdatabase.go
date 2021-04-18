@@ -1,3 +1,4 @@
+// Package middlew provides a middleware to verify some information.
 package middlew
 
 import (

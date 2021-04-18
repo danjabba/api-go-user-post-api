@@ -1,18 +1,4 @@
-// Package Clasification of Post API
-//
-// Documentation for post API
-//
-// 	Schemes: http
-// 	BasePath: /
-// 	Version: 1.0.0
-//
-// 	Consumes:
-// 	- application/json
-//
-// 	Produces:
-// 	- application/json
-// swagger:meta
-
+// Package routers Provides all the functions and methods.
 package routers
 
 import (
